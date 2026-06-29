@@ -116,32 +116,94 @@ VITE_API_URL=http://localhost:5000
 
 ## 🚀 Vercel Deployment
 
-### Step 1: Connect GitHub Repository
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click "Add New" → "Project"
-3. Import your GitHub repository: `https://github.com/HIMAMANTH-3/project_internship`
-4. Select project root (default)
+### Architecture
+```
+Vercel Deployment Structure:
+├── Frontend (Vite React) → Served at root (/)
+└── Backend (Express.js) → Serverless functions (/api/*)
+```
 
-### Step 2: Configure Environment
-In Vercel Project Settings → Environment Variables, add:
+The backend runs as **serverless functions** in Vercel, so there's no separate backend server to manage.
+
+### Step 1: Configure Environment Variables
+
+In Vercel Dashboard → Settings → Environment Variables, add:
 
 ```
 NODE_ENV=production
-DATABASE_URL=your_postgresql_url_if_using_db
-GEMINI_API_KEY=your_gemini_api_key
-OPENAI_API_KEY=your_openai_api_key
+GEMINI_API_KEY=sk-xxx...  (optional, for AI features)
+OPENAI_API_KEY=sk-xxx...  (optional, alternative to Gemini)
+DATABASE_URL=postgresql://... (optional, defaults to SQLite)
+FRONTEND_URL=https://your-deployment.vercel.app
 ```
 
-### Step 3: Build Settings
-- **Build Command**: `cd frontend && npm install && npm run build`
-- **Output Directory**: `frontend/dist`
-- **Framework**: `Vite`
+### Step 2: Deploy from GitHub
 
-### Step 4: Deploy
-Click "Deploy" - Vercel will:
-1. Build the React frontend
-2. Deploy serverless backend at `/api`
-3. Serve frontend with API routes rewrites
+**Method A: Automatic (Recommended)**
+
+1. Go to https://vercel.com/dashboard
+2. Click **"Add New"** → **"Project"**
+3. Select **"Import Git Repository"**
+4. Connect your GitHub account if needed
+5. Find and select **`HIMAMANTH-3/project_internship`**
+6. Vercel auto-detects the configuration from `vercel.json`
+7. Click **"Deploy"**
+
+**Method B: Manual via Vercel CLI**
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to your account
+vercel login
+
+# Deploy (from project root)
+vercel --prod
+
+# View logs
+vercel logs
+```
+
+### Step 3: Post-Deployment
+
+Once deployed, your app will be available at:
+```
+https://your-app-name.vercel.app
+```
+
+**Verify it's working:**
+- Visit `https://your-app-name.vercel.app/login`
+- Check backend: `https://your-app-name.vercel.app/api/health`
+- Try logging in with demo credentials
+
+### Configuration Reference
+
+**vercel.json Configuration:**
+```json
+{
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 60,
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index.js" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
+  ]
+}
+```
+
+**What happens:**
+- `/` → Serves React app from `frontend/dist/`
+- `/api/*` → Routes to serverless backend function
+- All 404s for non-API routes → Serve `index.html` (SPA routing)
 
 ---
 
