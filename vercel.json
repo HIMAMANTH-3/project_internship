@@ -3,7 +3,6 @@
   "framework": "vite",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "public": "frontend/public",
   "functions": {
     "api/index.js": {
       "memory": 1024,
